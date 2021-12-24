@@ -8,14 +8,6 @@
     },
     "root": true,
     "parser": "@typescript-eslint/parser",
-    "plugins": [
-        "prettier",
-        "@typescript-eslint"
-    ],
-    "extends": [
-        "plugin:react/recommended",
-        "plugin:@typescript-eslint/recommended"
-    ],
     "overrides": [
         {
             "files": [
@@ -30,9 +22,7 @@
         "@typescript-eslint/ban-types": "off",
         "@typescript-eslint/interface-name-prefix": "off",
         "@typescript-eslint/explicit-function-return-type": "off",
-        "react/prop-types": "off",
-        "react/react-in-jsx-scope": "off",
-        "prettier/prettier": "error"
+        "react/prop-types": "off"
     },
     "settings": {
         "react": {
