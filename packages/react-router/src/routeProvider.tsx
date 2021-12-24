@@ -1,4 +1,3 @@
-/* eslint-disable react/display-name */
 import React from "react";
 import { RouteProps, Switch, Route, Redirect } from "react-router-dom";
 import {
@@ -20,6 +19,7 @@ type IRouteComponentProps = { match: { params: { id: string } } };
 
 const RouteProviderBase: React.FC = () => {
     const { resources } = useResource();
+
     const { catchAll, DashboardPage, LoginPage } = useRefineContext();
 
     const { routes: customRoutes }: { routes: RouteProps[] } =

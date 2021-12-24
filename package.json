@@ -3,7 +3,7 @@
     "license": "MIT",
     "private": true,
     "engines": {
-        "node": ">=10"
+        "node": ">=14"
     },
     "workspaces": [
         "packages/*",
@@ -17,40 +17,17 @@
         "bootstrap": "lerna bootstrap --strict --ignore-scripts",
         "lint": "eslint -c ./.eslintrc packages examples",
         "lint:fix": "npm run lint -- --quiet --fix",
-        "build": "lerna run build",
+        "build": "lerna run build --ignore examples/*",
         "versionup": "npm run lerna version --conventional-commits --no-git-tag-version",
-        "nuke": "rm -rf node_modules; for d in for d in packages/*/node_modules; do echo $d; rm -rf $d; done; for d in for d in packages/*/dist; do echo $d; rm -rf $d; done; for d in packages/*/dist; do echo $d; rm -rf $d; done; for d in examples/*/node_modules; do echo $d; rm -rf $d; done;  for d in examples/*/package-lock.json; do echo $d; rm -rf $d; done; for d in packages/*/package-lock.json; do echo $d; rm -rf $d; done;"
-    },
-    "lint-staged": {
-        "*.{js,jsx,ts,tsx}": [
-            "npm run lint:fix"
-        ]
-    },
-    "husky": {
-        "hooks": {
-            "pre-commit": "lint-staged"
-        }
+        "nuke": "rm yarn.lock && rm -rf node_modules; for d in for d in packages/*/node_modules; do echo $d; rm -rf $d; done; for d in for d in packages/*/dist; do echo $d; rm -rf $d; done; for d in packages/*/dist; do echo $d; rm -rf $d; done; for d in examples/*/node_modules; do echo $d; rm -rf $d; done;  for d in examples/*/yarn.lock; do echo $d; rm -rf $d; done; for d in packages/*/yarn.lock; do echo $d; rm -rf $d; done;"
     },
     "name": "refinejs-repo",
     "author": "Pankod",
     "devDependencies": {
-        "@types/jest": "^26.0.24",
-        "@types/react": "^17.0.4",
-        "@types/react-dom": "^17.0.4",
-        "@typescript-eslint/eslint-plugin": "^4.25.0",
         "@typescript-eslint/parser": "^4.25.0",
         "eslint": "7.27.0",
-        "eslint-plugin-prettier": "^3.4.0",
-        "eslint-plugin-react": "^7.23.2",
-        "husky": "^4.3.8",
         "jest": "^25.5.4",
         "lerna": "^4.0.0",
-        "lint-staged": "^10.5.4",
-        "react": "^17.0.2",
-        "react-dom": "^17.0.2",
-        "typescript": "^4.4.3"
-    },
-    "dependencies": {
-        "prettier": "^2.3.0"
+        "lint-staged": "^10.5.4"
     }
 }
