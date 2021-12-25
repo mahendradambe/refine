@@ -1,7 +1,4 @@
-// import "node_modules/antd/dist/antd.css";
-
 export * from "./components";
-export * from "./components/antd";
 export * from "./hooks";
 
 export { IAuthContext as AuthProvider, Pagination } from "./interfaces";
@@ -15,7 +12,6 @@ export {
     MutationMode,
     IResourceComponents,
     IResourceComponentsProps,
-    ILoginForm,
     HttpError,
     UploadedFile,
     LayoutProps,
@@ -39,9 +35,3 @@ export {
     ResourceRouterParams,
     IResourceItem
 } from "./interfaces";
-
-// antd upload (useStrapiUpload)
-export { RcFile, UploadFile } from "antd/lib/upload/interface";
-
-// antd filterDropDownProps (using for <FilterDropDown> component)
-export { FilterDropdownProps } from "antd/lib/table/interface";
