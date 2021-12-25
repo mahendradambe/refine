@@ -1,34 +1,24 @@
+import { DefaultComponent } from "@components/layoutWrapper/components";
 import React from "react";
-
 import { IRefineContext, IRefineContextProvider } from "./IRefineContext";
-import {
-    Layout as DefaultLayout,
-    Header as DefaultHeader,
-    Sider as DefaultSider,
-    Footer as DefaultFooter,
-    OffLayoutArea as DefaultOffLayoutArea,
-    Title as DefaultTitle,
-} from "@components/layoutWrapper/components";
 
-import { LoginPage as DefaultLoginPage } from "@components/pages";
-
-export const RefineContext = React.createContext<IRefineContext>({
+export const RefineContext = React.createContext<IRefineContext>( {
     hasDashboard: false,
     mutationMode: "pessimistic",
     warnWhenUnsavedChanges: false,
     syncWithLocation: false,
     undoableTimeout: 5000,
-    Title: DefaultTitle,
-    Sider: DefaultSider,
-    Header: DefaultHeader,
-    Footer: DefaultFooter,
-    Layout: DefaultLayout,
-    OffLayoutArea: DefaultOffLayoutArea,
+    Title: DefaultComponent,
+    Sider: DefaultComponent,
+    Header: DefaultComponent,
+    Footer: DefaultComponent,
+    Layout: DefaultComponent,
+    OffLayoutArea: DefaultComponent,
     liveMode: "off",
-    onLiveEvent: undefined,
-});
+    onLiveEvent: undefined
+} );
 
-export const RefineContextProvider: React.FC<IRefineContextProvider> = ({
+export const RefineContextProvider: React.FC<IRefineContextProvider> = ( {
     hasDashboard,
     mutationMode,
     warnWhenUnsavedChanges,
@@ -36,17 +26,17 @@ export const RefineContextProvider: React.FC<IRefineContextProvider> = ({
     undoableTimeout,
     children,
     DashboardPage,
-    Title = DefaultTitle,
-    Layout = DefaultLayout,
-    Header = DefaultHeader,
-    Sider = DefaultSider,
-    Footer = DefaultFooter,
-    OffLayoutArea = DefaultOffLayoutArea,
-    LoginPage = DefaultLoginPage,
+    Title = DefaultComponent,
+    Layout = DefaultComponent,
+    Header = DefaultComponent,
+    Sider = DefaultComponent,
+    Footer = DefaultComponent,
+    OffLayoutArea = DefaultComponent,
+    LoginPage = DefaultComponent,
     catchAll,
     liveMode = "off",
-    onLiveEvent,
-}) => {
+    onLiveEvent
+} ) => {
     return (
         <RefineContext.Provider
             value={{
@@ -65,7 +55,7 @@ export const RefineContextProvider: React.FC<IRefineContextProvider> = ({
                 LoginPage,
                 catchAll,
                 liveMode,
-                onLiveEvent,
+                onLiveEvent
             }}
         >
             {children}
