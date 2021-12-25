@@ -5,11 +5,12 @@ import pluralize from "pluralize";
 import { DataContext } from "@contexts/data";
 import {
     useCacheQueries,
-    useCancelNotification,
+    useMutationNotification,
     useCheckError,
     useMutationMode,
     useTranslate,
     usePublish,
+    useNotificationApi
 } from "@hooks";
 import { ActionTypes } from "@contexts/notification";
 import {
@@ -22,16 +23,15 @@ import {
     QueryResponse,
     Context as UpdateContext,
     SuccessErrorNotification,
-    MetaDataQuery,
+    MetaDataQuery
 } from "../../interfaces";
-import { handleNotification } from "@definitions/helpers";
 
 type UpdateManyParams<TVariables> = {
     ids: string[];
     resource: string;
     mutationMode?: MutationMode;
     undoableTimeout?: number;
-    onCancel?: (cancelMutation: () => void) => void;
+    onCancel?: ( cancelMutation: () => void ) => void;
     values: TVariables;
     metaData?: MetaDataQuery;
 } & SuccessErrorNotification;
@@ -39,7 +39,7 @@ type UpdateManyParams<TVariables> = {
 type UseUpdateManyReturnType<
     TData extends BaseRecord = BaseRecord,
     TError extends HttpError = HttpError,
-    TVariables = {},
+    TVariables = {}
 > = UseMutationResult<
     UpdateManyResponse<TData>,
     TError,
@@ -62,19 +62,20 @@ type UseUpdateManyReturnType<
 export const useUpdateMany = <
     TData extends BaseRecord = BaseRecord,
     TError extends HttpError = HttpError,
-    TVariables = {},
+    TVariables = {}
 >(): UseUpdateManyReturnType<TData, TError, TVariables> => {
     const queryClient = useQueryClient();
     const translate = useTranslate();
-    const { updateMany } = useContext<IDataContext>(DataContext);
+    const { updateMany } = useContext<IDataContext>( DataContext );
     const {
         mutationMode: mutationModeContext,
-        undoableTimeout: undoableTimeoutContext,
+        undoableTimeout: undoableTimeoutContext
     } = useMutationMode();
     const { mutate: checkError } = useCheckError();
 
-    const { notificationDispatch } = useCancelNotification();
+    const { notificationDispatch } = useMutationNotification();
     const publish = usePublish();
+    const notifier = useNotificationApi();
 
     const getAllQueries = useCacheQueries();
 
@@ -84,52 +85,52 @@ export const useUpdateMany = <
         UpdateManyParams<TVariables>,
         UpdateContext
     >(
-        ({
+        ( {
             ids,
             values,
             resource,
             onCancel,
             mutationMode,
             undoableTimeout,
-            metaData,
-        }: UpdateManyParams<TVariables>) => {
+            metaData
+        }: UpdateManyParams<TVariables> ) => {
             const mutationModePropOrContext =
                 mutationMode ?? mutationModeContext;
 
             const undoableTimeoutPropOrContext =
                 undoableTimeout ?? undoableTimeoutContext;
 
-            if (!(mutationModePropOrContext === "undoable")) {
-                return updateMany<TData, TVariables>({
+            if ( !( mutationModePropOrContext === "undoable" ) ) {
+                return updateMany<TData, TVariables>( {
                     resource,
                     ids,
                     variables: values,
-                    metaData,
-                });
+                    metaData
+                } );
             }
 
             const updatePromise = new Promise<UpdateManyResponse<TData>>(
-                (resolve, reject) => {
+                ( resolve, reject ) => {
                     const doMutation = () => {
-                        updateMany<TData, TVariables>({
+                        updateMany<TData, TVariables>( {
                             resource,
                             ids,
                             variables: values,
-                            metaData,
-                        })
-                            .then((result) => resolve(result))
-                            .catch((err) => reject(err));
+                            metaData
+                        } )
+                            .then( result => resolve( result ) )
+                            .catch( err => reject( err ) );
                     };
 
                     const cancelMutation = () => {
-                        reject({ message: "mutationCancelled" });
+                        reject( { message: "mutationCancelled" } );
                     };
 
-                    if (onCancel) {
-                        onCancel(cancelMutation);
+                    if ( onCancel ) {
+                        onCancel( cancelMutation );
                     }
 
-                    notificationDispatch({
+                    notificationDispatch( {
                         type: ActionTypes.ADD,
                         payload: {
                             id: ids,
@@ -137,148 +138,147 @@ export const useUpdateMany = <
                             cancelMutation: cancelMutation,
                             doMutation: doMutation,
                             seconds: undoableTimeoutPropOrContext,
-                            isSilent: !!onCancel,
-                        },
-                    });
-                },
+                            isSilent: !!onCancel
+                        }
+                    } );
+                }
             );
             return updatePromise;
         },
 
         {
-            onMutate: async ({ resource, ids, values, mutationMode }) => {
+            onMutate: async ( { resource, ids, values, mutationMode } ) => {
                 const previousQueries: ContextQuery[] = [];
                 const mutationModePropOrContext =
                     mutationMode ?? mutationModeContext;
 
-                const allQueries = getAllQueries(resource, ids);
+                const allQueries = getAllQueries( resource, ids );
 
-                for (const queryItem of allQueries) {
+                for ( const queryItem of allQueries ) {
                     const { queryKey } = queryItem;
-                    await queryClient.cancelQueries(queryKey, undefined, {
-                        silent: true,
-                    });
+                    await queryClient.cancelQueries( queryKey, undefined, {
+                        silent: true
+                    } );
 
-                    const previousQuery =
-                        queryClient.getQueryData<QueryResponse<TData>>(
-                            queryKey,
-                        );
+                    const previousQuery = queryClient.getQueryData<
+                        QueryResponse<TData>
+                    >( queryKey );
 
-                    if (!(mutationModePropOrContext === "pessimistic")) {
-                        if (previousQuery) {
-                            previousQueries.push({
+                    if ( !( mutationModePropOrContext === "pessimistic" ) ) {
+                        if ( previousQuery ) {
+                            previousQueries.push( {
                                 query: previousQuery,
-                                queryKey,
-                            });
+                                queryKey
+                            } );
 
                             if (
-                                queryKey.includes(`resource/list/${resource}`)
+                                queryKey.includes( `resource/list/${resource}` )
                             ) {
                                 const { data } = previousQuery;
 
-                                queryClient.setQueryData(queryKey, {
+                                queryClient.setQueryData( queryKey, {
                                     ...previousQuery,
-                                    data: data.map((record: TData) => {
+                                    data: data.map( ( record: TData ) => {
                                         if (
                                             ids
-                                                .map((p) => p.toString())
-                                                .includes(record.id!.toString())
+                                                .map( p => p.toString() )
+                                                .includes( record.id!.toString() )
                                         ) {
                                             return {
                                                 ...record,
-                                                ...values,
+                                                ...values
                                             };
                                         }
                                         return record;
-                                    }),
-                                });
+                                    } )
+                                } );
                             } else {
-                                queryClient.setQueryData(queryKey, {
+                                queryClient.setQueryData( queryKey, {
                                     data: {
                                         ...previousQuery.data,
-                                        ...values,
-                                    },
-                                });
+                                        ...values
+                                    }
+                                } );
                             }
                         }
                     }
                 }
 
                 return {
-                    previousQueries: previousQueries,
+                    previousQueries: previousQueries
                 };
             },
             onError: (
                 err: TError,
                 { ids, resource, errorNotification },
-                context,
+                context
             ) => {
-                if (context) {
-                    for (const query of context.previousQueries) {
-                        queryClient.setQueryData(query.queryKey, query.query);
+                if ( context ) {
+                    for ( const query of context.previousQueries ) {
+                        queryClient.setQueryData( query.queryKey, query.query );
                     }
                 }
 
-                if (err.message !== "mutationCancelled") {
-                    checkError?.(err);
+                if ( err.message !== "mutationCancelled" ) {
+                    checkError?.( err );
 
-                    const resourceSingular = pluralize.singular(resource);
+                    const resourceSingular = pluralize.singular( resource );
 
-                    handleNotification(errorNotification, {
+                    notifier.open( errorNotification, {
                         key: `${ids}-${resource}-updateMany-error-notification`,
                         message: translate(
                             "notifications.editError",
                             {
                                 resource: resourceSingular,
-                                statusCode: err.statusCode,
+                                statusCode: err.statusCode
                             },
-                            `Error when updating ${resourceSingular} (status code: ${err.statusCode})`,
+                            `Error when updating ${resourceSingular} (status code: ${err.statusCode})`
                         ),
                         description: err.message,
-                        type: "error",
-                    });
+                        type: "error"
+                    } );
                 }
             },
-            onSettled: (_data, _error, { ids, resource }) => {
-                const allQueries = getAllQueries(resource, ids);
-                for (const query of allQueries) {
-                    queryClient.invalidateQueries(query.queryKey);
+            onSettled: ( _data, _error, { ids, resource } ) => {
+                const allQueries = getAllQueries( resource, ids );
+                for ( const query of allQueries ) {
+                    queryClient.invalidateQueries( query.queryKey );
                 }
 
-                notificationDispatch({
+                notificationDispatch( {
                     type: ActionTypes.REMOVE,
-                    payload: { id: ids, resource },
-                });
+                    payload: { id: ids, resource }
+                } );
             },
-            onSuccess: (_data, { ids, resource, successNotification }) => {
-                const resourceSingular = pluralize.singular(resource);
+            onSuccess: ( _data, { ids, resource, successNotification } ) => {
+                const resourceSingular = pluralize.singular( resource );
 
-                handleNotification(successNotification, {
+                notifier.open( successNotification, {
                     key: `${ids}-${resource}-notification`,
-                    message: translate("notifications.success", "Successful"),
+                    message: translate( "notifications.success", "Successful" ),
                     description: translate(
                         "notifications.editSuccess",
                         {
                             resource: translate(
                                 `${resource}.${resource}`,
-                                resource,
-                            ),
+                                resource
+                            )
                         },
-                        `Successfully updated ${resourceSingular}`,
+                        `Successfully updated ${resourceSingular}`
                     ),
-                    type: "success",
-                });
+                    type: "success"
+                } );
 
-                publish?.({
+                publish?.( {
                     channel: `resources/${resource}`,
                     type: "updated",
                     payload: {
-                        ids: ids.map(String),
+                        ids: ids.map( String )
                     },
-                    date: new Date(),
-                });
-            },
-        },
+                    date: new Date()
+                } );
+            }
+        }
     );
 
     return mutation;

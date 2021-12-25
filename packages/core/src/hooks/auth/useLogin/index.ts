@@ -1,12 +1,11 @@
 import React from "react";
 import { useMutation, UseMutationResult } from "react-query";
-import { notification } from "antd";
 import qs from "qs";
 
 import { AuthContext } from "@contexts/auth";
 
 import { IAuthContext } from "../../../interfaces";
-import { useNavigation, useRouterContext } from "@hooks";
+import { useNavigation, useNotificationApi, useRouterContext } from "@hooks";
 
 export type UseLoginReturnType<TData, TVariables = {}> = UseMutationResult<
     TData,
@@ -28,30 +27,32 @@ export const useLogin = <TData, TVariables = {}>(): UseLoginReturnType<
     TVariables
 > => {
     const { replace } = useNavigation();
-    const { login: loginFromContext } =
-        React.useContext<IAuthContext>(AuthContext);
+    const { login: loginFromContext } = React.useContext<IAuthContext>(
+        AuthContext
+    );
 
     const { useLocation } = useRouterContext();
     const { search } = useLocation();
+    const notifier = useNotificationApi();
 
-    const { to } = qs.parse(search.substring(1));
+    const { to } = qs.parse( search.substring( 1 ) );
 
     const queryResponse = useMutation<TData, unknown, TVariables, unknown>(
         "useLogin",
         loginFromContext,
         {
             onSuccess: () => {
-                replace((to as string) ?? "/");
-                notification.close("login-error");
+                replace( ( to as string ) ?? "/" );
+                notifier.close( "login-error" );
             },
-            onError: (error: any) => {
-                notification.error({
+            onError: ( error: any ) => {
+                notifier.error( {
                     message: error?.name || "Login Error",
                     description: error?.message || "Invalid credentials",
-                    key: "login-error",
-                });
-            },
-        },
+                    key: "login-error"
+                } );
+            }
+        }
     );
 
     return queryResponse;

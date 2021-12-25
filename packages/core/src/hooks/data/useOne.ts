@@ -8,17 +8,21 @@ import {
     BaseRecord,
     MetaDataQuery,
     LiveModeProps,
+    INotificationArgs
 } from "../../interfaces";
-import { useCheckError, useTranslate, useResourceSubscription } from "@hooks";
-import { ArgsProps } from "antd/lib/notification";
-import { handleNotification } from "@definitions";
+import {
+    useCheckError,
+    useTranslate,
+    useResourceSubscription,
+    useNotificationApi
+} from "@hooks";
 
 export type UseOneProps<TData, TError> = {
     resource: string;
     id: string;
     queryOptions?: UseQueryOptions<GetOneResponse<TData>, TError>;
-    successNotification?: ArgsProps | false;
-    errorNotification?: ArgsProps | false;
+    successNotification?: INotificationArgs | false;
+    errorNotification?: INotificationArgs | false;
     metaData?: MetaDataQuery;
 } & LiveModeProps;
 
@@ -35,8 +39,8 @@ export type UseOneProps<TData, TError> = {
  */
 export const useOne = <
     TData extends BaseRecord = BaseRecord,
-    TError extends HttpError = HttpError,
->({
+    TError extends HttpError = HttpError
+>( {
     resource,
     id,
     queryOptions,
@@ -45,47 +49,48 @@ export const useOne = <
     metaData,
     liveMode,
     onLiveEvent,
-    liveParams,
-}: UseOneProps<TData, TError>): QueryObserverResult<GetOneResponse<TData>> => {
-    const { getOne } = useContext<IDataContext>(DataContext);
+    liveParams
+}: UseOneProps<TData, TError> ): QueryObserverResult<GetOneResponse<TData>> => {
+    const { getOne } = useContext<IDataContext>( DataContext );
     const translate = useTranslate();
     const { mutate: checkError } = useCheckError();
+    const notifier = useNotificationApi();
 
-    useResourceSubscription({
+    useResourceSubscription( {
         resource,
-        types: ["*"],
+        types: [ "*" ],
         channel: `resources/${resource}`,
-        params: { ids: id ? [id.toString()] : [], ...liveParams },
+        params: { ids: id ? [ id.toString() ] : [], ...liveParams },
         enabled: queryOptions?.enabled,
         liveMode,
-        onLiveEvent,
-    });
+        onLiveEvent
+    } );
 
     const queryResponse = useQuery<GetOneResponse<TData>, TError>(
-        [`resource/getOne/${resource}`, { id, ...metaData }],
-        () => getOne<TData>({ resource, id, metaData }),
+        [ `resource/getOne/${resource}`, { id, ...metaData } ],
+        () => getOne<TData>( { resource, id, metaData } ),
         {
             ...queryOptions,
-            onSuccess: (data) => {
-                queryOptions?.onSuccess?.(data);
-                handleNotification(successNotification);
+            onSuccess: data => {
+                queryOptions?.onSuccess?.( data );
+                notifier.open( successNotification );
             },
-            onError: (err: TError) => {
-                checkError(err);
-                queryOptions?.onError?.(err);
+            onError: ( err: TError ) => {
+                checkError( err );
+                queryOptions?.onError?.( err );
 
-                handleNotification(errorNotification, {
+                notifier.open( errorNotification, {
                     key: `${id}-${resource}-getOne-notification`,
                     message: translate(
                         "notifications.error",
                         { statusCode: err.statusCode },
-                        `Error (status code: ${err.statusCode})`,
+                        `Error (status code: ${err.statusCode})`
                     ),
                     description: err.message,
-                    type: "error",
-                });
-            },
-        },
+                    type: "error"
+                } );
+            }
+        }
     );
 
     return queryResponse;

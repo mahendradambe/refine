@@ -1,6 +1,5 @@
 import { useContext } from "react";
 import { QueryObserverResult, useQuery, UseQueryOptions } from "react-query";
-import { ArgsProps } from "antd/lib/notification";
 
 import { DataContext } from "@contexts/data";
 import {
@@ -10,16 +9,21 @@ import {
     HttpError,
     MetaDataQuery,
     LiveModeProps,
+    INotificationArgs
 } from "../../interfaces";
-import { useTranslate, useCheckError, useResourceSubscription } from "@hooks";
-import { handleNotification } from "@definitions";
+import {
+    useTranslate,
+    useCheckError,
+    useResourceSubscription,
+    useNotificationApi
+} from "@hooks";
 
 export type UseManyProps<TData, TError> = {
     resource: string;
     ids: string[];
     queryOptions?: UseQueryOptions<GetManyResponse<TData>, TError>;
-    successNotification?: ArgsProps | false;
-    errorNotification?: ArgsProps | false;
+    successNotification?: INotificationArgs | false;
+    errorNotification?: INotificationArgs | false;
     metaData?: MetaDataQuery;
 } & LiveModeProps;
 
@@ -36,8 +40,8 @@ export type UseManyProps<TData, TError> = {
  */
 export const useMany = <
     TData extends BaseRecord = BaseRecord,
-    TError extends HttpError = HttpError,
->({
+    TError extends HttpError = HttpError
+>( {
     resource,
     ids,
     queryOptions,
@@ -46,52 +50,53 @@ export const useMany = <
     metaData,
     liveMode,
     onLiveEvent,
-    liveParams,
-}: UseManyProps<TData, TError>): QueryObserverResult<
-    GetManyResponse<TData>
-> => {
-    const { getMany } = useContext<IDataContext>(DataContext);
+    liveParams
+}: UseManyProps<TData, TError> ): QueryObserverResult<GetManyResponse<
+    TData
+>> => {
+    const { getMany } = useContext<IDataContext>( DataContext );
     const translate = useTranslate();
     const { mutate: checkError } = useCheckError();
+    const notifier = useNotificationApi();
 
     const isEnabled =
         queryOptions?.enabled === undefined || queryOptions?.enabled === true;
 
-    useResourceSubscription({
+    useResourceSubscription( {
         resource,
-        types: ["*"],
-        params: { ids: ids ? ids?.map(String) : [], ...liveParams },
+        types: [ "*" ],
+        params: { ids: ids ? ids?.map( String ) : [], ...liveParams },
         channel: `resources/${resource}`,
         enabled: isEnabled,
         liveMode,
-        onLiveEvent,
-    });
+        onLiveEvent
+    } );
 
     const queryResponse = useQuery<GetManyResponse<TData>, TError>(
-        [`resource/getMany/${resource}`, { ids, ...metaData }],
-        () => getMany<TData>({ resource, ids, metaData }),
+        [ `resource/getMany/${resource}`, { ids, ...metaData } ],
+        () => getMany<TData>( { resource, ids, metaData } ),
         {
             ...queryOptions,
-            onSuccess: (data) => {
-                queryOptions?.onSuccess?.(data);
-                handleNotification(successNotification);
+            onSuccess: data => {
+                queryOptions?.onSuccess?.( data );
+                notifier.open( successNotification );
             },
-            onError: (err: TError) => {
-                checkError(err);
-                queryOptions?.onError?.(err);
+            onError: ( err: TError ) => {
+                checkError( err );
+                queryOptions?.onError?.( err );
 
-                handleNotification(errorNotification, {
+                notifier.open( errorNotification, {
                     key: `${ids[0]}-${resource}-getMany-notification`,
                     message: translate(
                         "notifications.error",
                         { statusCode: err.statusCode },
-                        `Error (status code: ${err.statusCode})`,
+                        `Error (status code: ${err.statusCode})`
                     ),
                     description: err.message,
-                    type: "error",
-                });
-            },
-        },
+                    type: "error"
+                } );
+            }
+        }
     );
 
     return queryResponse;

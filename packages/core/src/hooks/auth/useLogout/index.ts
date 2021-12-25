@@ -1,14 +1,13 @@
 import React from "react";
 import { useMutation, UseMutationResult } from "react-query";
-import { notification } from "antd";
 
 import { AuthContext } from "@contexts/auth";
 import {
     IAuthContext,
     TLogoutVariables,
-    TLogoutData,
+    TLogoutData
 } from "../../../interfaces";
-import { useNavigation } from "@hooks";
+import { useNavigation, useNotificationApi } from "@hooks";
 
 /**
  * `useLogout` calls the `logout` method from the {@link https://refine.dev/docs/api-references/providers/auth-provider `authProvider`} under the hood.
@@ -23,34 +22,36 @@ export const useLogout = (): UseMutationResult<
     unknown
 > => {
     const { push } = useNavigation();
-    const { logout: logoutFromContext } =
-        React.useContext<IAuthContext>(AuthContext);
+    const { logout: logoutFromContext } = React.useContext<IAuthContext>(
+        AuthContext
+    );
+    const notifier = useNotificationApi();
 
     const queryResponse = useMutation<
         TLogoutData,
         Error,
         TLogoutVariables,
         unknown
-    >("useLogout", logoutFromContext, {
-        onSuccess: (redirectPathFromAuth, { redirectPath } = {}) => {
-            if (redirectPathFromAuth !== false) {
-                if (redirectPath) {
-                    push(redirectPath);
-                } else if (redirectPathFromAuth) {
-                    push(redirectPathFromAuth);
+    >( "useLogout", logoutFromContext, {
+        onSuccess: ( redirectPathFromAuth, { redirectPath } = {} ) => {
+            if ( redirectPathFromAuth !== false ) {
+                if ( redirectPath ) {
+                    push( redirectPath );
+                } else if ( redirectPathFromAuth ) {
+                    push( redirectPathFromAuth );
                 } else {
-                    push("/login");
+                    push( "/login" );
                 }
             }
         },
-        onError: (error: Error) => {
-            notification.error({
+        onError: ( error: Error ) => {
+            notifier.error( {
                 message: error?.name || "Logout Error",
                 description:
-                    error?.message || "Something went wrong during logout",
-            });
-        },
-    });
+                    error?.message || "Something went wrong during logout"
+            } );
+        }
+    } );
 
     return queryResponse;
 };

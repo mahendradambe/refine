@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import { MemoryRouter } from "react-router-dom";
 
 import { AuthContextProvider } from "@contexts/auth";
-import { NotificationContextProvider } from "@contexts/notification";
+import { MutationNotificationContextProvider } from "@contexts/notification";
 import { DataContextProvider } from "@contexts/data";
 import { ResourceContextProvider, IResourceItem } from "@contexts/resource";
 import {
@@ -11,7 +11,7 @@ import {
     IAuthContext,
     I18nProvider,
     IAccessControlContext,
-    ILiveContext,
+    ILiveContext
 } from "../src/interfaces";
 import { TranslationContextProvider } from "@contexts/translation";
 import { RefineContextProvider } from "@contexts/refine";
@@ -23,17 +23,17 @@ import { LiveContextProvider } from "@contexts/live";
 import {
     MockRouterProvider,
     MockAccessControlProvider,
-    MockLiveProvider,
+    MockLiveProvider
 } from "@test";
 
-const queryClient = new QueryClient({
+const queryClient = new QueryClient( {
     defaultOptions: {
         queries: {
             cacheTime: 0,
-            retry: 0,
-        },
-    },
-});
+            retry: 0
+        }
+    }
+} );
 
 interface ITestWrapperProps {
     authProvider?: IAuthContext;
@@ -47,7 +47,7 @@ interface ITestWrapperProps {
     refineProvider?: IRefineContextProvider;
 }
 
-export const TestWrapper: (props: ITestWrapperProps) => React.FC = ({
+export const TestWrapper: ( props: ITestWrapperProps ) => React.FC = ( {
     authProvider,
     dataProvider,
     resources,
@@ -55,10 +55,9 @@ export const TestWrapper: (props: ITestWrapperProps) => React.FC = ({
     accessControlProvider,
     routerInitialEntries,
     refineProvider,
-    liveProvider,
-}) => {
-    // eslint-disable-next-line react/display-name
-    return ({ children }): React.ReactElement => {
+    liveProvider
+} ) => {
+    return ( { children } ): React.ReactElement => {
         const withResource = resources ? (
             <ResourceContextProvider resources={resources}>
                 {children}
@@ -104,9 +103,9 @@ export const TestWrapper: (props: ITestWrapperProps) => React.FC = ({
         );
 
         const withNotification = (
-            <NotificationContextProvider>
+            <MutationNotificationContextProvider>
                 {withTranslation}
-            </NotificationContextProvider>
+            </MutationNotificationContextProvider>
         );
 
         const withAuth = authProvider ? (
@@ -141,7 +140,7 @@ export {
     MockJSONServer,
     MockRouterProvider,
     MockAccessControlProvider,
-    MockLiveProvider,
+    MockLiveProvider
 } from "./dataMocks";
 
 // re-export everything

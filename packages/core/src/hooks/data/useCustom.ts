@@ -1,6 +1,5 @@
 import { useContext } from "react";
 import { QueryObserverResult, useQuery, UseQueryOptions } from "react-query";
-import { ArgsProps } from "antd/lib/notification";
 
 import { DataContext } from "@contexts/data";
 import {
@@ -11,9 +10,9 @@ import {
     BaseRecord,
     HttpError,
     MetaDataQuery,
+    INotificationArgs
 } from "../../interfaces";
-import { useTranslate, useCheckError } from "@hooks";
-import { handleNotification } from "@definitions/helpers";
+import { useTranslate, useCheckError, useNotificationApi } from "@hooks";
 
 interface UseCustomConfig<TQuery, TPayload> {
     sort?: CrudSorting;
@@ -28,8 +27,8 @@ export type UseCustomProps<TData, TError, TQuery, TPayload> = {
     method: "get" | "delete" | "head" | "options" | "post" | "put" | "patch";
     config?: UseCustomConfig<TQuery, TPayload>;
     queryOptions?: UseQueryOptions<CustomResponse<TData>, TError>;
-    successNotification?: ArgsProps | false;
-    errorNotification?: ArgsProps | false;
+    successNotification?: INotificationArgs | false;
+    errorNotification?: INotificationArgs | false;
     metaData?: MetaDataQuery;
 };
 
@@ -50,48 +49,49 @@ export const useCustom = <
     TData = BaseRecord,
     TError extends HttpError = HttpError,
     TQuery = unknown,
-    TPayload = unknown,
->({
+    TPayload = unknown
+>( {
     url,
     method,
     config,
     queryOptions,
     successNotification,
     errorNotification,
-    metaData,
-}: UseCustomProps<TData, TError, TQuery, TPayload>): QueryObserverResult<
+    metaData
+}: UseCustomProps<TData, TError, TQuery, TPayload> ): QueryObserverResult<
     CustomResponse<TData>,
     TError
 > => {
-    const { custom } = useContext<IDataContext>(DataContext);
+    const { custom } = useContext<IDataContext>( DataContext );
     const { mutate: checkError } = useCheckError();
     const translate = useTranslate();
+    const notifier = useNotificationApi();
 
     const queryResponse = useQuery<CustomResponse<TData>, TError>(
-        [`custom/${method}-${url}`, { ...config, ...metaData }],
-        () => custom<TData>({ url, method, ...config, metaData }),
+        [ `custom/${method}-${url}`, { ...config, ...metaData } ],
+        () => custom<TData>( { url, method, ...config, metaData } ),
         {
             ...queryOptions,
-            onSuccess: (data) => {
-                queryOptions?.onSuccess?.(data);
-                handleNotification(successNotification);
+            onSuccess: data => {
+                queryOptions?.onSuccess?.( data );
+                notifier.open( successNotification );
             },
-            onError: (err: TError) => {
-                checkError(err);
-                queryOptions?.onError?.(err);
+            onError: ( err: TError ) => {
+                checkError( err );
+                queryOptions?.onError?.( err );
 
-                handleNotification(errorNotification, {
+                notifier.open( errorNotification, {
                     key: `${method}-notification`,
                     message: translate(
                         "common:notifications.error",
                         { statusCode: err.statusCode },
-                        `Error (status code: ${err.statusCode})`,
+                        `Error (status code: ${err.statusCode})`
                     ),
                     description: err.message,
-                    type: "error",
-                });
-            },
-        },
+                    type: "error"
+                } );
+            }
+        }
     );
 
     return queryResponse;

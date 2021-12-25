@@ -1,6 +1,5 @@
 import { useContext } from "react";
 import { QueryObserverResult, useQuery, UseQueryOptions } from "react-query";
-import { ArgsProps } from "antd/lib/notification";
 
 import { DataContext } from "@contexts/data";
 import {
@@ -13,9 +12,14 @@ import {
     CrudSorting,
     MetaDataQuery,
     LiveModeProps,
+    INotificationArgs
 } from "../../interfaces";
-import { useCheckError, useResourceSubscription, useTranslate } from "@hooks";
-import { handleNotification } from "@definitions";
+import {
+    useCheckError,
+    useResourceSubscription,
+    useTranslate,
+    useNotificationApi
+} from "@hooks";
 
 interface UseListConfig {
     pagination?: Pagination;
@@ -27,8 +31,8 @@ export type UseListProps<TData, TError> = {
     resource: string;
     config?: UseListConfig;
     queryOptions?: UseQueryOptions<GetListResponse<TData>, TError>;
-    successNotification?: ArgsProps | false;
-    errorNotification?: ArgsProps | false;
+    successNotification?: INotificationArgs | false;
+    errorNotification?: INotificationArgs | false;
     metaData?: MetaDataQuery;
 } & LiveModeProps;
 
@@ -45,8 +49,8 @@ export type UseListProps<TData, TError> = {
  */
 export const useList = <
     TData = BaseRecord,
-    TError extends HttpError = HttpError,
->({
+    TError extends HttpError = HttpError
+>( {
     resource,
     config,
     queryOptions,
@@ -55,53 +59,54 @@ export const useList = <
     metaData,
     liveMode,
     onLiveEvent,
-    liveParams,
-}: UseListProps<TData, TError>): QueryObserverResult<
+    liveParams
+}: UseListProps<TData, TError> ): QueryObserverResult<
     GetListResponse<TData>,
     TError
 > => {
-    const { getList } = useContext<IDataContext>(DataContext);
+    const { getList } = useContext<IDataContext>( DataContext );
     const translate = useTranslate();
     const { mutate: checkError } = useCheckError();
+    const notifier = useNotificationApi();
 
     const isEnabled =
         queryOptions?.enabled === undefined || queryOptions?.enabled === true;
 
-    useResourceSubscription({
+    useResourceSubscription( {
         resource,
-        types: ["*"],
+        types: [ "*" ],
         params: liveParams,
         channel: `resources/${resource}`,
         enabled: isEnabled,
         liveMode,
-        onLiveEvent,
-    });
+        onLiveEvent
+    } );
 
     const queryResponse = useQuery<GetListResponse<TData>, TError>(
-        [`resource/list/${resource}`, { ...config, ...metaData }],
-        () => getList<TData>({ resource, ...config, metaData }),
+        [ `resource/list/${resource}`, { ...config, ...metaData } ],
+        () => getList<TData>( { resource, ...config, metaData } ),
         {
             ...queryOptions,
-            onSuccess: (data) => {
-                queryOptions?.onSuccess?.(data);
-                handleNotification(successNotification);
+            onSuccess: data => {
+                queryOptions?.onSuccess?.( data );
+                notifier.open( successNotification );
             },
-            onError: (err: TError) => {
-                checkError(err);
-                queryOptions?.onError?.(err);
+            onError: ( err: TError ) => {
+                checkError( err );
+                queryOptions?.onError?.( err );
 
-                handleNotification(errorNotification, {
+                notifier.open( errorNotification, {
                     key: `${resource}-useList-notification`,
                     message: translate(
                         "common:notifications.error",
                         { statusCode: err.statusCode },
-                        `Error (status code: ${err.statusCode})`,
+                        `Error (status code: ${err.statusCode})`
                     ),
                     description: err.message,
-                    type: "error",
-                });
-            },
-        },
+                    type: "error"
+                } );
+            }
+        }
     );
 
     return queryResponse;

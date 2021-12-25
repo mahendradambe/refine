@@ -2,9 +2,9 @@ import * as React from "react";
 import { act } from "@test";
 import { renderHook } from "@testing-library/react-hooks";
 
-import { notificationReducer } from "./notificationContext";
+import { mutationNotificationReducer } from "./MutationNotificationContext";
 
-describe("Notification Reducer", () => {
+describe( "Notification Reducer", () => {
     const notificationDispatch = jest.fn();
 
     const providerProps = {
@@ -13,82 +13,82 @@ describe("Notification Reducer", () => {
                 id: "1",
                 resource: "posts",
                 seconds: 5000,
-                isRunning: true,
-            },
+                isRunning: true
+            }
         ],
-        notificationDispatch: notificationDispatch,
+        notificationDispatch: notificationDispatch
     };
 
-    it("should render notification item with ADD action", () => {
-        act(async () => {
-            const { result, waitForNextUpdate } = renderHook(() =>
-                React.useReducer(notificationReducer, []),
+    it( "should render notification item with ADD action", () => {
+        act( async () => {
+            const { result, waitForNextUpdate } = renderHook( () =>
+                React.useReducer( mutationNotificationReducer, [] )
             );
-            const [, dispatch] = result.current;
+            const [ , dispatch ] = result.current;
 
-            dispatch({ type: "ADD", payload: providerProps.notifications[0] });
+            dispatch( { type: "ADD", payload: providerProps.notifications[0] } );
 
             await waitForNextUpdate();
-            const [state] = result.current;
+            const [ state ] = result.current;
 
-            expect(state).toEqual([
+            expect( state ).toEqual( [
                 {
                     id: "1",
                     resource: "posts",
                     seconds: 5000,
-                    isRunning: true,
-                },
-            ]);
-        });
-    });
+                    isRunning: true
+                }
+            ] );
+        } );
+    } );
 
-    it("remove notification item with DELETE action", () => {
-        act(async () => {
-            const { result, waitForNextUpdate } = renderHook(() =>
+    it( "remove notification item with DELETE action", () => {
+        act( async () => {
+            const { result, waitForNextUpdate } = renderHook( () =>
                 React.useReducer(
-                    notificationReducer,
-                    providerProps.notifications,
-                ),
+                    mutationNotificationReducer,
+                    providerProps.notifications
+                )
             );
-            const [, dispatch] = result.current;
+            const [ , dispatch ] = result.current;
 
-            dispatch({
+            dispatch( {
                 type: "DELETE",
-                payload: providerProps.notifications[0],
-            });
+                payload: providerProps.notifications[0]
+            } );
 
             await waitForNextUpdate();
-            const [state] = result.current;
+            const [ state ] = result.current;
 
-            expect(state).toEqual([]);
-        });
-    });
+            expect( state ).toEqual( [] );
+        } );
+    } );
 
-    it("decrease notification item by 1 second with DECREASE_NOTIFICATION_SECOND action", () => {
-        act(async () => {
-            const { result, waitForNextUpdate } = renderHook(() =>
+    it( "decrease notification item by 1 second with DECREASE_NOTIFICATION_SECOND action", () => {
+        act( async () => {
+            const { result, waitForNextUpdate } = renderHook( () =>
                 React.useReducer(
-                    notificationReducer,
-                    providerProps.notifications,
-                ),
+                    mutationNotificationReducer,
+                    providerProps.notifications
+                )
             );
-            const [, dispatch] = result.current;
+            const [ , dispatch ] = result.current;
 
-            dispatch({
+            dispatch( {
                 type: "DECREASE_NOTIFICATION_SECOND",
                 payload: {
                     id: providerProps.notifications[0].id,
                     seconds: providerProps.notifications[0].seconds,
-                    resource: providerProps.notifications[0].resource,
-                },
-            });
+                    resource: providerProps.notifications[0].resource
+                }
+            } );
 
             await waitForNextUpdate();
-            const [state] = result.current;
+            const [ state ] = result.current;
 
-            expect(state[0].seconds).toEqual(
-                providerProps.notifications[0].seconds - 1000,
+            expect( state[0].seconds ).toEqual(
+                providerProps.notifications[0].seconds - 1000
             );
-        });
-    });
-});
+        } );
+    } );
+} );

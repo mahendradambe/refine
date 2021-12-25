@@ -8,10 +8,14 @@ import {
     CreateManyResponse,
     HttpError,
     SuccessErrorNotification,
-    MetaDataQuery,
+    MetaDataQuery
 } from "../../interfaces";
-import { useCacheQueries, useTranslate, usePublish } from "@hooks";
-import { handleNotification } from "@definitions";
+import {
+    useCacheQueries,
+    useTranslate,
+    usePublish,
+    useNotificationApi
+} from "@hooks";
 import pluralize from "pluralize";
 
 type useCreateManyParams<TVariables> = {
@@ -23,7 +27,7 @@ type useCreateManyParams<TVariables> = {
 export type UseCreateManyReturnType<
     TData extends BaseRecord = BaseRecord,
     TError = HttpError,
-    TVariables = {},
+    TVariables = {}
 > = UseMutationResult<
     CreateManyResponse<TData>,
     TError,
@@ -46,77 +50,78 @@ export type UseCreateManyReturnType<
 export const useCreateMany = <
     TData extends BaseRecord = BaseRecord,
     TError extends HttpError = HttpError,
-    TVariables = {},
+    TVariables = {}
 >(): UseCreateManyReturnType<TData, TError, TVariables> => {
-    const { createMany } = useContext<IDataContext>(DataContext);
+    const { createMany } = useContext<IDataContext>( DataContext );
     const getAllQueries = useCacheQueries();
     const translate = useTranslate();
     const queryClient = useQueryClient();
     const publish = usePublish();
+    const notifier = useNotificationApi();
 
     const mutation = useMutation<
         CreateManyResponse<TData>,
         TError,
         useCreateManyParams<TVariables>
     >(
-        ({ resource, values, metaData }: useCreateManyParams<TVariables>) =>
-            createMany<TData, TVariables>({
+        ( { resource, values, metaData }: useCreateManyParams<TVariables> ) =>
+            createMany<TData, TVariables>( {
                 resource,
                 variables: values,
-                metaData,
-            }),
+                metaData
+            } ),
         {
-            onSuccess: (response, { resource, successNotification }) => {
-                const resourcePlural = pluralize.plural(resource);
+            onSuccess: ( response, { resource, successNotification } ) => {
+                const resourcePlural = pluralize.plural( resource );
 
-                handleNotification(successNotification, {
+                notifier.open( successNotification, {
                     description: translate(
                         "notifications.createSuccess",
                         {
                             resource: translate(
                                 `${resource}.${resource}`,
-                                resource,
-                            ),
+                                resource
+                            )
                         },
-                        `Successfully created ${resourcePlural}`,
+                        `Successfully created ${resourcePlural}`
                     ),
-                    message: translate("notifications.success", "Success"),
-                    type: "success",
-                });
+                    message: translate( "notifications.success", "Success" ),
+                    type: "success"
+                } );
 
-                getAllQueries(resource).forEach((query) => {
-                    queryClient.invalidateQueries(query.queryKey);
-                });
+                getAllQueries( resource ).forEach( query => {
+                    queryClient.invalidateQueries( query.queryKey );
+                } );
 
-                publish?.({
+                publish?.( {
                     channel: `resources/${resource}`,
                     type: "created",
                     payload: {
                         ids: response.data
-                            .filter((item) => item?.id !== undefined)
-                            .map((item) => item.id!.toString()),
+                            .filter( item => item?.id !== undefined )
+                            .map( item => item.id!.toString() )
                     },
-                    date: new Date(),
-                });
+                    date: new Date()
+                } );
             },
-            onError: (err: TError, { resource, errorNotification }) => {
-                handleNotification(errorNotification, {
+            onError: ( err: TError, { resource, errorNotification } ) => {
+                notifier.open( errorNotification, {
                     description: err.message,
                     message: translate(
                         "notifications.createError",
                         {
                             resource: translate(
                                 `${resource}.${resource}`,
-                                resource,
+                                resource
                             ),
-                            statusCode: err.statusCode,
+                            statusCode: err.statusCode
                         },
-                        `There was an error creating ${resource} (status code: ${err.statusCode}`,
+                        `There was an error creating ${resource} (status code: ${err.statusCode}`
                     ),
-                    type: "error",
-                });
-            },
-        },
+                    type: "error"
+                } );
+            }
+        }
     );
 
     return mutation;

@@ -14,31 +14,31 @@ import {
     GetListResponse,
     Context as DeleteContext,
     SuccessErrorNotification,
-    MetaDataQuery,
+    MetaDataQuery
 } from "../../interfaces";
 import {
     useTranslate,
     useMutationMode,
-    useCancelNotification,
+    useMutationNotification,
     useCacheQueries,
     useCheckError,
     usePublish,
+    useNotificationApi
 } from "@hooks";
 import { ActionTypes } from "@contexts/notification";
-import { handleNotification } from "@definitions";
 
 type DeleteManyParams = {
     ids: string[];
     resource: string;
     mutationMode?: MutationMode;
     undoableTimeout?: number;
-    onCancel?: (cancelMutation: () => void) => void;
+    onCancel?: ( cancelMutation: () => void ) => void;
     metaData?: MetaDataQuery;
 } & SuccessErrorNotification;
 
 type UseDeleteManyReturnType<
     TData extends BaseRecord = BaseRecord,
-    TError = HttpError,
+    TError = HttpError
 > = UseMutationResult<
     DeleteManyResponse<TData>,
     TError,
@@ -60,19 +60,20 @@ type UseDeleteManyReturnType<
  */
 export const useDeleteMany = <
     TData extends BaseRecord = BaseRecord,
-    TError extends HttpError = HttpError,
+    TError extends HttpError = HttpError
 >(): UseDeleteManyReturnType<TData, TError> => {
     const { mutate: checkError } = useCheckError();
-    const { deleteMany } = useContext<IDataContext>(DataContext);
+    const { deleteMany } = useContext<IDataContext>( DataContext );
     const {
         mutationMode: mutationModeContext,
-        undoableTimeout: undoableTimeoutContext,
+        undoableTimeout: undoableTimeoutContext
     } = useMutationMode();
 
-    const { notificationDispatch } = useCancelNotification();
+    const { notificationDispatch } = useMutationNotification();
     const translate = useTranslate();
     const cacheQueries = useCacheQueries();
     const publish = usePublish();
+    const notifier = useNotificationApi();
 
     const queryClient = useQueryClient();
 
@@ -82,40 +83,40 @@ export const useDeleteMany = <
         DeleteManyParams,
         DeleteContext
     >(
-        ({
+        ( {
             resource,
             ids,
             mutationMode,
             undoableTimeout,
             onCancel,
-            metaData,
-        }: DeleteManyParams) => {
+            metaData
+        }: DeleteManyParams ) => {
             const mutationModePropOrContext =
                 mutationMode ?? mutationModeContext;
 
             const undoableTimeoutPropOrContext =
                 undoableTimeout ?? undoableTimeoutContext;
-            if (!(mutationModePropOrContext === "undoable")) {
-                return deleteMany<TData>({ resource, ids, metaData });
+            if ( !( mutationModePropOrContext === "undoable" ) ) {
+                return deleteMany<TData>( { resource, ids, metaData } );
             }
 
             const updatePromise = new Promise<DeleteManyResponse<TData>>(
-                (resolve, reject) => {
+                ( resolve, reject ) => {
                     const doMutation = () => {
-                        deleteMany<TData>({ resource, ids, metaData })
-                            .then((result) => resolve(result))
-                            .catch((err) => reject(err));
+                        deleteMany<TData>( { resource, ids, metaData } )
+                            .then( result => resolve( result ) )
+                            .catch( err => reject( err ) );
                     };
 
                     const cancelMutation = () => {
-                        reject({ message: "mutationCancelled" });
+                        reject( { message: "mutationCancelled" } );
                     };
 
-                    if (onCancel) {
-                        onCancel(cancelMutation);
+                    if ( onCancel ) {
+                        onCancel( cancelMutation );
                     }
 
-                    notificationDispatch({
+                    notificationDispatch( {
                         type: ActionTypes.ADD,
                         payload: {
                             id: ids,
@@ -123,134 +124,133 @@ export const useDeleteMany = <
                             cancelMutation: cancelMutation,
                             doMutation: doMutation,
                             seconds: undoableTimeoutPropOrContext,
-                            isSilent: !!onCancel,
-                        },
-                    });
-                },
+                            isSilent: !!onCancel
+                        }
+                    } );
+                }
             );
             return updatePromise;
         },
         {
-            onMutate: async ({ ids, resource, mutationMode }) => {
+            onMutate: async ( { ids, resource, mutationMode } ) => {
                 const mutationModePropOrContext =
                     mutationMode ?? mutationModeContext;
                 const previousQueries: ContextQuery[] = [];
 
-                const allQueries = cacheQueries(resource, ids);
+                const allQueries = cacheQueries( resource, ids );
 
-                for (const queryItem of allQueries) {
+                for ( const queryItem of allQueries ) {
                     const { queryKey } = queryItem;
-                    await queryClient.cancelQueries(queryKey, undefined, {
-                        silent: true,
-                    });
+                    await queryClient.cancelQueries( queryKey, undefined, {
+                        silent: true
+                    } );
 
-                    const previousQuery =
-                        queryClient.getQueryData<QueryResponse<TData>>(
-                            queryKey,
-                        );
+                    const previousQuery = queryClient.getQueryData<
+                        QueryResponse<TData>
+                    >( queryKey );
 
-                    if (!(mutationModePropOrContext === "pessimistic")) {
-                        if (previousQuery) {
-                            previousQueries.push({
+                    if ( !( mutationModePropOrContext === "pessimistic" ) ) {
+                        if ( previousQuery ) {
+                            previousQueries.push( {
                                 query: previousQuery,
-                                queryKey,
-                            });
+                                queryKey
+                            } );
 
                             if (
-                                queryKey.includes(`resource/list/${resource}`)
+                                queryKey.includes( `resource/list/${resource}` )
                             ) {
-                                const { data, total } =
-                                    previousQuery as GetListResponse<TData>;
+                                const {
+                                    data,
+                                    total
+                                } = previousQuery as GetListResponse<TData>;
 
-                                queryClient.setQueryData(queryKey, {
+                                queryClient.setQueryData( queryKey, {
                                     ...previousQuery,
-                                    data: (data ?? []).filter(
-                                        (record: TData) =>
+                                    data: ( data ?? [] ).filter(
+                                        ( record: TData ) =>
                                             !ids
-                                                .map((p) => p.toString())
-                                                .includes(
-                                                    record.id!.toString(),
-                                                ),
+                                                .map( p => p.toString() )
+                                                .includes( record.id!.toString() )
                                     ),
-                                    total: total - ids.length,
-                                });
+                                    total: total - ids.length
+                                } );
                             } else {
-                                queryClient.removeQueries(queryKey);
+                                queryClient.removeQueries( queryKey );
                             }
                         }
                     }
                 }
 
                 return {
-                    previousQueries: previousQueries,
+                    previousQueries: previousQueries
                 };
             },
             // Always refetch after error or success:
-            onSettled: (_data, _error, { resource, ids }) => {
-                const allQueries = cacheQueries(resource, ids);
-                for (const query of allQueries) {
+            onSettled: ( _data, _error, { resource, ids } ) => {
+                const allQueries = cacheQueries( resource, ids );
+                for ( const query of allQueries ) {
                     if (
-                        !query.queryKey.includes(`resource/getOne/${resource}`)
+                        !query.queryKey.includes( `resource/getOne/${resource}` )
                     ) {
-                        queryClient.invalidateQueries(query.queryKey);
+                        queryClient.invalidateQueries( query.queryKey );
                     }
                 }
 
-                notificationDispatch({
+                notificationDispatch( {
                     type: ActionTypes.REMOVE,
-                    payload: { id: ids, resource },
-                });
+                    payload: { id: ids, resource }
+                } );
             },
-            onSuccess: (_data, { ids, resource, successNotification }) => {
-                handleNotification(successNotification, {
+            onSuccess: ( _data, { ids, resource, successNotification } ) => {
+                notifier.open( successNotification, {
                     key: `${ids}-${resource}-notification`,
-                    message: translate("notifications.success", "Success"),
+                    message: translate( "notifications.success", "Success" ),
                     description: translate(
                         "notifications.deleteSuccess",
                         {
                             resource: translate(
                                 `${resource}.${resource}`,
-                                resource,
-                            ),
+                                resource
+                            )
                         },
-                        `Successfully deleted ${resource}`,
+                        `Successfully deleted ${resource}`
                     ),
-                    type: "success",
-                });
+                    type: "success"
+                } );
 
-                publish?.({
+                publish?.( {
                     channel: `resources/${resource}`,
                     type: "deleted",
-                    payload: { ids: ids.map(String) },
-                    date: new Date(),
-                });
+                    payload: { ids: ids.map( String ) },
+                    date: new Date()
+                } );
             },
-            onError: (err, { ids, resource, errorNotification }, context) => {
-                if (context) {
-                    for (const query of context.previousQueries) {
-                        queryClient.setQueryData(query.queryKey, query.query);
+            onError: ( err, { ids, resource, errorNotification }, context ) => {
+                if ( context ) {
+                    for ( const query of context.previousQueries ) {
+                        queryClient.setQueryData( query.queryKey, query.query );
                     }
                 }
 
-                if (err.message !== "mutationCancelled") {
-                    checkError(err);
-                    const resourceSingular = pluralize.singular(resource);
+                if ( err.message !== "mutationCancelled" ) {
+                    checkError( err );
+                    const resourceSingular = pluralize.singular( resource );
 
-                    handleNotification(errorNotification, {
+                    notifier.open( errorNotification, {
                         key: `${ids}-${resource}-notification`,
                         message: translate(
                             "notifications.deleteError",
                             {
                                 resource: resourceSingular,
-                                statusCode: err.statusCode,
+                                statusCode: err.statusCode
                             },
-                            `Error (status code: ${err.statusCode})`,
+                            `Error (status code: ${err.statusCode})`
                         ),
-                        description: err.message,
-                    });
+                        description: err.message
+                    } );
                 }
-            },
-        },
+            }
+        }
     );
 
     return mutation;

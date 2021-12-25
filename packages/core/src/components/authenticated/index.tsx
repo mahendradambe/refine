@@ -12,25 +12,25 @@ export type AuthenticatedProps = {
  *
  * @see {@link https://refine.dev/docs/api-references/components/auth/authenticated `<Authenticated>`} component for more details.
  */
-export const Authenticated: React.FC<AuthenticatedProps> = ({
+export const Authenticated: React.FC<AuthenticatedProps> = ( {
     children,
     fallback,
-    loading,
-}) => {
+    loading
+} ) => {
     const { isSuccess, isLoading, isError } = useAuthenticated();
 
     const { replace } = useNavigation();
     const { useLocation } = useRouterContext();
     const { pathname, search } = useLocation();
 
-    if (isLoading) {
+    if ( isLoading ) {
         return <>{loading}</> || null;
     }
-    if (isError) {
-        if (!fallback) {
+    if ( isError ) {
+        if ( !fallback ) {
             const toURL = `${pathname}${search}`;
-            if (!pathname.includes("/login")) {
-                replace(`/login?to=${encodeURIComponent(toURL)}`);
+            if ( !pathname.includes( "/login" ) ) {
+                replace( `/login?to=${encodeURIComponent( toURL )}` );
             }
             return null;
         }
@@ -38,7 +38,7 @@ export const Authenticated: React.FC<AuthenticatedProps> = ({
         return <>{fallback}</>;
     }
 
-    if (isSuccess) {
+    if ( isSuccess ) {
         return <>{children}</>;
     }
 
