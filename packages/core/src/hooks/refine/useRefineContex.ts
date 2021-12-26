@@ -1,8 +1,8 @@
 import { useContext } from "react";
+import { RefineContext } from "../../contexts/refine";
+import { IRefineContext } from "../../contexts/refine/IRefineContext";
 
-import { RefineContext } from "@contexts/refine";
-
-export const useRefineContext = () => {
+export const useRefineContext = (): IRefineContext => {
     const {
         Footer,
         Header,
@@ -18,7 +18,10 @@ export const useRefineContext = () => {
         DashboardPage,
         LoginPage,
         catchAll,
-    } = useContext(RefineContext);
+        ErrorPage,
+        liveMode,
+        onLiveEvent
+    } = useContext( RefineContext );
 
     return {
         Footer,
@@ -35,5 +38,8 @@ export const useRefineContext = () => {
         DashboardPage,
         LoginPage,
         catchAll,
+        ErrorPage,
+        liveMode,
+        onLiveEvent
     };
 };

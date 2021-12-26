@@ -1,7 +1,14 @@
 import React from "react";
+import { ReactNode } from "react-markdown";
 
 export type TitleProps = {
     collapsed: boolean;
+};
+
+export type DashboardMenuItemOptions = {
+    name?: string;
+    label?: ReactNode;
+    icon?: ReactNode;
 };
 
 export type LayoutProps = {

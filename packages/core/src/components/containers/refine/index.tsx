@@ -1,4 +1,5 @@
 import { RouteChangeHandler } from "@components";
+import { DefaultComponent } from "@components/layoutWrapper/components";
 import {
     AccessControlContextProvider,
     defaultAccessControlContext
@@ -6,6 +7,8 @@ import {
 import { AuthContextProvider } from "@contexts/auth";
 import { DataContextProvider } from "@contexts/data";
 import { LiveContextProvider } from "@contexts/live";
+import { MutationNotificationContextProvider } from "@contexts/notification";
+import { MutationNotificationContextProviderProps } from "@contexts/notification/MutationNotificationContext";
 import { RefineContextProvider } from "@contexts/refine";
 import { IResourceItem, ResourceContextProvider } from "@contexts/resource";
 import { RouterContextProvider } from "@contexts/router";
@@ -13,7 +16,6 @@ import {
     defaultProvider,
     TranslationContextProvider
 } from "@contexts/translation";
-import { MutationNotificationContextProvider } from "@contexts/notification";
 import { UnsavedWarnContextProvider } from "@contexts/unsavedWarn";
 import React from "react";
 import {
@@ -37,9 +39,6 @@ import {
     ResourceProps,
     TitleProps
 } from "../../../interfaces";
-import { MutationNotificationContextProviderProps } from "@contexts/notification/MutationNotificationContext";
-import { NotificationApiContext } from "@contexts/notification/NotificationApiContext";
-import { DefaultComponent } from "@components/layoutWrapper/components";
 
 interface QueryClientConfig {
     queryCache?: QueryCache;
@@ -57,7 +56,7 @@ export interface RefineProps {
     resources?: IResource[];
     i18nProvider?: I18nProvider;
     catchAll?: React.ReactNode;
-    LoginPage?: React.FC;
+    LoginPage: React.FC;
     DashboardPage?: React.FC;
     ReadyPage?: React.FC;
     mutationMode?: MutationMode;
@@ -69,6 +68,7 @@ export interface RefineProps {
     Header?: React.FC;
     Footer?: React.FC;
     OffLayoutArea?: React.FC;
+    ErrorPage: React.FC;
     Title?: React.FC<TitleProps>;
     reactQueryClientConfig?: QueryClientConfig;
     reactQueryDevtoolConfig?: any;
@@ -101,12 +101,13 @@ export const Refine: React.FC<RefineProps> = ( {
     syncWithLocation = false,
     warnWhenUnsavedChanges = false,
     undoableTimeout = 5000,
-    Title,
-    Layout,
-    Sider,
-    Header,
-    Footer,
-    OffLayoutArea,
+    Title = DefaultComponent,
+    Layout = DefaultComponent,
+    Sider = DefaultComponent,
+    Header = DefaultComponent,
+    Footer = DefaultComponent,
+    ErrorPage = DefaultComponent,
+    OffLayoutArea = DefaultComponent,
     reactQueryClientConfig,
     reactQueryDevtoolConfig,
     liveMode,
@@ -183,6 +184,7 @@ export const Refine: React.FC<RefineProps> = ( {
                                                 catchAll={catchAll}
                                                 DashboardPage={DashboardPage}
                                                 LoginPage={LoginPage}
+                                                ErrorPage={ErrorPage}
                                                 Layout={Layout}
                                                 Sider={Sider}
                                                 Footer={Footer}

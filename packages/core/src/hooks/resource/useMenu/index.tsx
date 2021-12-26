@@ -1,10 +1,12 @@
-import React, { useContext } from "react";
-import { DashboardOutlined, UnorderedListOutlined } from "@ant-design/icons";
-
-import { RefineContext } from "@contexts/refine";
-import { IRefineContext, IMenuItem } from "../../../interfaces";
-import { useTranslate, useResource, useRouterContext } from "@hooks";
 import { userFriendlyResourceName } from "@definitions";
+import {
+    useRefineContext,
+    useResource,
+    useRouterContext,
+    useTranslate
+} from "@hooks";
+import React from "react";
+import { IMenuItem } from "../../../interfaces";
 
 type useMenuReturnType = {
     selectedKey: string;
@@ -27,23 +29,23 @@ export const useMenu: () => useMenuReturnType = () => {
     const location = useLocation();
     const params = useParams<{ resource: string }>();
 
-    const { hasDashboard } = useContext<IRefineContext>(RefineContext);
+    const { hasDashboard, dashboardMenu } = useRefineContext();
 
-    let selectedResource = resources.find((el) =>
-        location?.pathname?.startsWith(`/${el.route}`),
+    let selectedResource = resources.find( el =>
+        location?.pathname?.startsWith( `/${el.route}` )
     );
 
     // for no ssr
-    if (!selectedResource) {
-        selectedResource = resources.find((el) =>
-            params?.resource?.startsWith(el.route as string),
+    if ( !selectedResource ) {
+        selectedResource = resources.find( el =>
+            params?.resource?.startsWith( el.route as string )
         );
     }
 
     let selectedKey: string;
-    if (selectedResource?.route) {
+    if ( selectedResource?.route ) {
         selectedKey = `/${selectedResource?.route}`;
-    } else if (location.pathname === "/") {
+    } else if ( location.pathname === "/" ) {
         selectedKey = "/";
     } else {
         selectedKey = "notfound";
@@ -51,39 +53,42 @@ export const useMenu: () => useMenuReturnType = () => {
 
     const menuItems: IMenuItem[] = React.useMemo(
         () => [
-            ...(hasDashboard
+            ...( hasDashboard
                 ? [
                       {
-                          name: "Dashboard",
-                          icon: <DashboardOutlined />,
+                          name: dashboardMenu?.name ?? "Dashboard",
+                          icon: dashboardMenu?.icon,
                           route: `/`,
                           key: "dashboard",
-                          label: translate("dashboard.title", "Dashboard"),
-                      },
+                          label: translate(
+                              "dashboard.title",
+                              dashboardMenu?.label
+                          )
+                      }
                   ]
-                : []),
-            ...resources.map((resource) => {
+                : [] ),
+            ...resources.map( resource => {
                 const route = `/${resource.route}`;
 
                 return {
                     ...resource,
-                    icon: resource.icon ?? <UnorderedListOutlined />,
-                    route: route,
+                    icon: resource.icon,
+                    route,
                     key: route,
                     label:
                         resource.label ??
                         translate(
                             `${resource.name}.${resource.name}`,
-                            userFriendlyResourceName(resource.name, "plural"),
-                        ),
+                            userFriendlyResourceName( resource.name, "plural" )
+                        )
                 };
-            }),
+            } )
         ],
-        [resources, hasDashboard],
+        [ resources, hasDashboard ]
     );
 
     return {
         selectedKey,
-        menuItems,
+        menuItems
     };
 };

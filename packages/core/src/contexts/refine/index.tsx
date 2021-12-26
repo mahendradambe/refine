@@ -1,6 +1,6 @@
 import { DefaultComponent } from "@components/layoutWrapper/components";
 import React from "react";
-import { IRefineContext, IRefineContextProvider } from "./IRefineContext";
+import { IRefineContext } from "./IRefineContext";
 
 export const RefineContext = React.createContext<IRefineContext>( {
     hasDashboard: false,
@@ -15,10 +15,12 @@ export const RefineContext = React.createContext<IRefineContext>( {
     Layout: DefaultComponent,
     OffLayoutArea: DefaultComponent,
     liveMode: "off",
-    onLiveEvent: undefined
+    onLiveEvent: undefined,
+    ErrorPage: DefaultComponent,
+    LoginPage: DefaultComponent
 } );
 
-export const RefineContextProvider: React.FC<IRefineContextProvider> = ( {
+export const RefineContextProvider: React.FC<IRefineContext> = ( {
     hasDashboard,
     mutationMode,
     warnWhenUnsavedChanges,
@@ -35,30 +37,32 @@ export const RefineContextProvider: React.FC<IRefineContextProvider> = ( {
     LoginPage = DefaultComponent,
     catchAll,
     liveMode = "off",
-    onLiveEvent
-} ) => {
-    return (
-        <RefineContext.Provider
-            value={{
-                hasDashboard,
-                mutationMode,
-                warnWhenUnsavedChanges,
-                syncWithLocation,
-                Title,
-                undoableTimeout,
-                Layout,
-                Header,
-                Sider,
-                Footer,
-                OffLayoutArea,
-                DashboardPage,
-                LoginPage,
-                catchAll,
-                liveMode,
-                onLiveEvent
-            }}
-        >
-            {children}
-        </RefineContext.Provider>
-    );
-};
+    onLiveEvent,
+    ErrorPage,
+    dashboardMenu
+} ) => (
+    <RefineContext.Provider
+        value={{
+            hasDashboard,
+            mutationMode,
+            warnWhenUnsavedChanges,
+            syncWithLocation,
+            Title,
+            undoableTimeout,
+            Layout,
+            Header,
+            Sider,
+            Footer,
+            OffLayoutArea,
+            DashboardPage,
+            LoginPage,
+            catchAll,
+            liveMode,
+            onLiveEvent,
+            ErrorPage,
+            dashboardMenu
+        }}
+    >
+        {children}
+    </RefineContext.Provider>
+);
