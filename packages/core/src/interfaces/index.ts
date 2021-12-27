@@ -11,11 +11,6 @@ export * from "../contexts/unsavedWarn/IUnsavedWarnContext";
 export * from "../contexts/router/IRouterContext";
 export * from "../contexts/accessControl/IAccessControlContext";
 
-// buttons
-export { CreateButtonProps } from "../components/buttons/create/index";
-
-export * from "../components/pages/login";
-
 // field
 export * from "./field";
 
@@ -42,9 +37,6 @@ export * from "./resourceErrorRouterParams";
 
 // redirection
 export * from "./redirectionTypes";
-
-// upload
-export * from "./upload";
 
 // mapData
 export * from "./mapDataFn";
