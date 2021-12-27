@@ -19,7 +19,7 @@ import {
     useNotificationApi
 } from "@hooks";
 
-type useCreateParams<TVariables> = {
+export type UseCreateParams<TVariables> = {
     resource: string;
     values: TVariables;
     metaData?: MetaDataQuery;
@@ -32,7 +32,7 @@ export type UseCreateReturnType<
 > = UseMutationResult<
     CreateResponse<TData>,
     TError,
-    useCreateParams<TVariables>,
+    UseCreateParams<TVariables>,
     unknown
 >;
 
@@ -64,10 +64,10 @@ export const useCreate = <
     const mutation = useMutation<
         CreateResponse<TData>,
         TError,
-        useCreateParams<TVariables>,
+        UseCreateParams<TVariables>,
         unknown
     >(
-        ( { resource, values, metaData }: useCreateParams<TVariables> ) =>
+        ( { resource, values, metaData }: UseCreateParams<TVariables> ) =>
             create<TData, TVariables>( {
                 resource,
                 variables: values,
