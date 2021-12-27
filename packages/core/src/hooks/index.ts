@@ -2,6 +2,7 @@ export * from "./auth";
 export * from "./data";
 export * from "./live";
 export * from "./resource";
+export * from "./components";
 export * from "./notification";
 export * from "./useListResourceQueries";
 export * from "./translate";

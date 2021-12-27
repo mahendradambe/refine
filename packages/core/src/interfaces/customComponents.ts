@@ -1,21 +1,11 @@
-import React from "react";
+import React, { ComponentType } from "react";
 import { ReactNode } from "react-markdown";
 
-export type TitleProps = {
-    collapsed: boolean;
-};
-
-export type DashboardMenuItemOptions = {
+export type PageOptions<
+    TPageProps extends Record<string, any> = Record<string, any>
+> = {
     name?: string;
     label?: ReactNode;
     icon?: ReactNode;
-};
-
-export type LayoutProps = {
-    Sider: React.FC;
-    Header: React.FC;
-    Title: React.FC<TitleProps>;
-    Footer: React.FC;
-    OffLayoutArea: React.FC;
-    dashboard?: boolean;
+    page: ComponentType<TPageProps>;
 };
