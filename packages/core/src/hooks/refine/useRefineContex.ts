@@ -4,12 +4,6 @@ import { IRefineContext } from "../../contexts/refine/IRefineContext";
 
 export const useRefineContext = (): IRefineContext => {
     const {
-        Footer,
-        Header,
-        Layout,
-        OffLayoutArea,
-        Sider,
-        Title,
         hasDashboard,
         mutationMode,
         syncWithLocation,
@@ -24,12 +18,6 @@ export const useRefineContext = (): IRefineContext => {
     } = useContext( RefineContext );
 
     return {
-        Footer,
-        Header,
-        Layout,
-        OffLayoutArea,
-        Sider,
-        Title,
         hasDashboard,
         mutationMode,
         syncWithLocation,
